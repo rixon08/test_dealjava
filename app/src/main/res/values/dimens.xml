@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="card_size_open_pack">200dp</dimen>
+    <dimen name="card_size_open_pack">150dp</dimen>
 </resources>

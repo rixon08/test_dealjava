@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.airbnb.lottie.LottieAnimationView
 import com.dealjava.test.R
 import com.dealjava.test.features.unlockrecipe.domain.models.RecipeModel
 
@@ -14,9 +15,13 @@ class RecipeAdapter (private var recipes: List<RecipeModel>,
 
     inner class RecipeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val tvRecipeName: TextView = itemView.findViewById(R.id.tvRecipeName)
+        private val lottieAnimationView: LottieAnimationView = itemView.findViewById(R.id.lottieAnimationView)
+
 
         fun bind(recipe: RecipeModel) {
             tvRecipeName.text = recipe.name
+            lottieAnimationView.setAnimation(recipe.lottieSrc)
+            lottieAnimationView.playAnimation()
             itemView.setOnClickListener { onItemClick(recipe) }
         }
     }

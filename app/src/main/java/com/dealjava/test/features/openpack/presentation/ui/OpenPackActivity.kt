@@ -1,5 +1,7 @@
 package com.dealjava.test.features.openpack.presentation.ui
 
+import android.animation.Animator
+import android.animation.ValueAnimator
 import android.content.Intent
 import android.graphics.Rect
 import android.os.Bundle
@@ -7,19 +9,23 @@ import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.widget.Button
+import android.widget.RelativeLayout
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.airbnb.lottie.LottieAnimationView
+import com.airbnb.lottie.LottieCompositionFactory
 import com.dealjava.test.core.models.IngredientModel
 import com.dealjava.test.R
 import com.dealjava.test.core.constants.IngredientConstants
 import com.dealjava.test.core.constants.RecipeConstants
 import com.dealjava.test.features.openpack.presentation.viewmodels.OpenPackViewModel
+import com.dealjava.test.features.unlockrecipe.domain.models.RecipeModel
 import com.dealjava.test.features.unlockrecipe.presentation.ui.UnlockRecipeActivity
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -37,6 +43,18 @@ class OpenPackActivity : AppCompatActivity() {
 
     private val viewModel: OpenPackViewModel by viewModel()
 
+    private lateinit var clCombine: ConstraintLayout
+    private lateinit var clCard: ConstraintLayout
+    private lateinit var rlOpenPack: RelativeLayout
+    private lateinit var lottieAnimationViewCombineToRight: LottieAnimationView
+    private lateinit var lottieAnimationViewCombineToLeft: LottieAnimationView
+    private lateinit var lottieAnimationViewCombineResult: LottieAnimationView
+    private lateinit var lottieAnimationViewOpenPack: LottieAnimationView
+    private lateinit var btnOkCombine: Button
+
+    val context = this
+    private var isOpenPack: Boolean = false
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,6 +66,15 @@ class OpenPackActivity : AppCompatActivity() {
             insets
         }
 
+        clCombine = findViewById<ConstraintLayout>(R.id.clCombine)
+        clCard = findViewById<ConstraintLayout>(R.id.clCard)
+        rlOpenPack = findViewById<RelativeLayout>(R.id.rlOpenPack)
+        lottieAnimationViewCombineToRight = findViewById<LottieAnimationView>(R.id.lottieAnimationViewCombineToRight)
+        lottieAnimationViewCombineToLeft = findViewById<LottieAnimationView>(R.id.lottieAnimationViewCombineToLeft)
+        lottieAnimationViewCombineResult = findViewById<LottieAnimationView>(R.id.lottieAnimationViewCombine1Result)
+        lottieAnimationViewOpenPack = findViewById<LottieAnimationView>(R.id.lottieAnimationViewOpenPack)
+        btnOkCombine = findViewById(R.id.btnOk)
+
         val lottieAnimationView1 = findViewById<LottieAnimationView>(R.id.lottieAnimationView1)
         val lottieAnimationView2 = findViewById<LottieAnimationView>(R.id.lottieAnimationView2)
         val lottieAnimationView3 = findViewById<LottieAnimationView>(R.id.lottieAnimationView3)
@@ -58,10 +85,35 @@ class OpenPackActivity : AppCompatActivity() {
         val btnOpenPack = findViewById<Button>(R.id.btnOpenPackAgain)
         val btnListUnlockRecipes = findViewById<Button>(R.id.btnListUnlockRecipes)
 
+        btnOkCombine.setOnClickListener{
+            clCombine.visibility = View.GONE
+        }
+
         btnOpenPack.setOnClickListener{
-            for ((index, _) in lottieAnimations.withIndex()){
-                lottieAnimations[index].visibility = View.VISIBLE
-            }
+            rlOpenPack.visibility = View.VISIBLE
+            lottieAnimationViewOpenPack.playAnimation()
+            lottieAnimationViewOpenPack.addAnimatorListener(object : Animator.AnimatorListener {
+                override fun onAnimationStart(animation: Animator) {
+
+                }
+
+                override fun onAnimationEnd(animation: Animator) {
+                    rlOpenPack.visibility = View.GONE
+                    clCard.visibility = View.VISIBLE
+                    initCard()
+                }
+
+                override fun onAnimationCancel(animation: Animator) {
+
+                }
+
+                override fun onAnimationRepeat(animation: Animator) {
+
+                }
+            })
+//            for ((index, _) in lottieAnimations.withIndex()){
+//                lottieAnimations[index].visibility = View.VISIBLE
+//            }
         }
 
         btnListUnlockRecipes.setOnClickListener{
@@ -78,9 +130,16 @@ class OpenPackActivity : AppCompatActivity() {
 
         listIngredient = IngredientConstants.listIngredient.shuffled()
 
+
+    }
+
+    private fun initCard(){
         for ((index, _) in lottieAnimations.withIndex()) {
             lottieAnimations[index].setAnimation(listIngredient[index].lottieSrc)
+            lottieAnimations[index].setRepeatCount(0);
+            lottieAnimations[index].playAnimation()
             lottieAnimations[index].tag = index
+
             lottieAnimations[index].setOnTouchListener { view, event ->
                 when (event.action) {
                     MotionEvent.ACTION_DOWN -> {
@@ -105,6 +164,11 @@ class OpenPackActivity : AppCompatActivity() {
                             .start()
                     }
                     MotionEvent.ACTION_UP -> {
+                        view.animate()
+                            .x(startX)
+                            .y(startY)
+                            .setDuration(200)
+                            .start()
                         val droppedOn = detectDroppedTarget(view as LottieAnimationView)
                         if (droppedOn != null && droppedOn != selectedLottie) {
                             Log.d("Drop", "${resources.getResourceEntryName(view.id)} dropped on ${resources.getResourceEntryName(droppedOn.id)}")
@@ -127,7 +191,7 @@ class OpenPackActivity : AppCompatActivity() {
                                         )
                                     )
                                 ) {
-                                    val recipeName =
+                                    val recipe =
                                         RecipeConstants.recipes[Pair(ingredientDrag.name, ingredientDrop.name)]
                                             ?: RecipeConstants.recipes[Pair(
                                                 ingredientDrop.name,
@@ -143,36 +207,23 @@ class OpenPackActivity : AppCompatActivity() {
                                             ingredientDrop.name,
                                             ingredientDrag.name
                                         ))
+                                        showRlCombine(ingredientDrop, ingredientDrag, recipe)
                                     } else {
                                         viewModel.saveRecipe(Pair(
                                             ingredientDrag.name,
                                             ingredientDrop.name
                                         ))
+                                        showRlCombine(ingredientDrag, ingredientDrop, recipe)
                                     }
-                                    showRecipeDialog(recipeName ?: "")
+//                                    showRecipeDialog(recipeName ?: "")
                                 } else {
-//                                (lottieAnimations[indexDrag].parent as? ViewGroup)?.removeView(lottieAnimations[indexDrag])
-//                                (lottieAnimations[indexDropped].parent as? ViewGroup)?.removeView(lottieAnimations[indexDropped])
-                                    lottieAnimations[indexDrag].visibility = View.INVISIBLE
-                                    lottieAnimations[indexDropped].visibility = View.INVISIBLE
+                                    showRlCombine(ingredientDrag, ingredientDrop, null){
+                                        lottieAnimations[indexDrag].visibility = View.INVISIBLE
+                                        lottieAnimations[indexDropped].visibility = View.INVISIBLE
+                                    }
                                 }
                             }
-                            // Pindahkan ke tengah target
-//                            val centerX = droppedOn.x + (droppedOn.width - view.width) / 2
-//                            val centerY = droppedOn.y + (droppedOn.height - view.height) / 2
-//                            view.animate()
-//                                .x(centerX)
-//                                .y(centerY)
-//                                .setDuration(200)
-//                                .start()
                         }
-//                        else {
-                            view.animate()
-                                .x(startX)
-                                .y(startY)
-                                .setDuration(200)
-                                .start()
-//                        }
                     }
                 }
                 true
@@ -196,19 +247,75 @@ class OpenPackActivity : AppCompatActivity() {
         return null
     }
 
-    private fun isViewOverlapping(view1: View, view2: View): Boolean {
-        val rect1 = Rect()
-        val rect2 = Rect()
-        view1.getHitRect(rect1)
-        view2.getHitRect(rect2)
-        return rect1.intersect(rect2)
-    }
-
     private fun showRecipeDialog(recipeName: String) {
         AlertDialog.Builder(this)
             .setTitle("Resep Terbentuk!")
             .setMessage("Kombinasi ini menghasilkan: $recipeName")
             .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
             .show()
+    }
+
+    private fun showRlCombine(
+        ingredientModel1: IngredientModel,
+        ingredientModel2: IngredientModel,
+        recipe: RecipeModel? = null,
+        onDone: () -> Unit = {}
+    ){
+        isLottie1Loaded = false
+        isLottie2Loaded = false
+        clCombine.visibility = View.VISIBLE
+        lottieAnimationViewCombineResult.visibility = View.GONE
+        lottieAnimationViewCombineToRight.setAnimation(ingredientModel1.lottieCombineToRightSrc)
+        lottieAnimationViewCombineToLeft.setAnimation(ingredientModel2.lottieCombineToLeftSrc)
+
+        lottieAnimationViewCombineToRight.addAnimatorListener(object : Animator.AnimatorListener {
+            override fun onAnimationStart(animation: Animator) {
+
+            }
+
+            override fun onAnimationEnd(animation: Animator) {
+                lottieAnimationViewCombineResult.visibility = View.VISIBLE
+                if (recipe != null){
+                    lottieAnimationViewCombineResult.setAnimation(recipe.lottieSrc)
+                } else {
+                    lottieAnimationViewCombineResult.setAnimation(R.raw.failed_lottie)
+                }
+                lottieAnimationViewCombineResult.playAnimation()
+                onDone()
+            }
+
+            override fun onAnimationCancel(animation: Animator) {
+
+            }
+
+            override fun onAnimationRepeat(animation: Animator) {
+
+            }
+        })
+
+
+        LottieCompositionFactory.fromRawRes(context, ingredientModel1.lottieCombineToRightSrc).addListener { composition ->
+            lottieAnimationViewCombineToRight.setComposition(composition)
+            isLottie1Loaded = true
+            checkAndPlayAnimations()
+        }
+
+        LottieCompositionFactory.fromRawRes(context, ingredientModel2.lottieCombineToLeftSrc).addListener { composition ->
+            lottieAnimationViewCombineToLeft.setComposition(composition)
+            isLottie2Loaded = true
+            checkAndPlayAnimations()
+        }
+
+
+    }
+
+    var isLottie1Loaded = false
+    var isLottie2Loaded = false
+
+    private fun checkAndPlayAnimations() {
+        if (isLottie1Loaded && isLottie2Loaded) {
+            lottieAnimationViewCombineToRight.playAnimation()
+            lottieAnimationViewCombineToLeft.playAnimation()
+        }
     }
 }

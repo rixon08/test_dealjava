@@ -29,11 +29,12 @@ class UnlockRecipeViewModel (
                     val ing2 = SearchIngredient.searchIngredientByName(recipe.first.second)
                     if (ing1 != null && ing2 != null) {
                         listData.add(
-                            RecipeModel(
-                                ingredientModel1 = ing1,
-                                ingredientModel2 = ing2,
-                                name = recipe.second
-                            )
+                            recipe.second
+//                            RecipeModel(
+//                                ingredientModel1 = ing1,
+//                                ingredientModel2 = ing2,
+//                                name = recipe.second.name
+//                            )
                         )
                     }
                 }
