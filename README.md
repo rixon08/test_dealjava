@@ -2,8 +2,7 @@
 
 ## Flow
 
-![](https://github.com/rixon08/test_dealjava/blob/master/flow.gif)
-
+<img src="https://github.com/rixon08/test_dealjava/blob/master/flow.gif" width="300">
 
 ## Teknologi yang Digunakan
 Bahasa Pemrograman: Kotlin
@@ -21,4 +20,4 @@ Jika berhasil, resep akan tersimpan di Recipe Library dan pengguna mendapatkan k
 c. Recipe Library
 Menyimpan daftar resep yang telah berhasil dikombinasikan.
 d. Animasi Lottie
-Digunakan untuk efek membuka kartu, kombinasi bahan, serta tampilan sukses/gagal.
+Digunakan untuk efek membuka kartu, kombinasi bahan, serta tampilan sukses/gagal. Saya membuat sendiri melalui https://www.lottielab.com/
