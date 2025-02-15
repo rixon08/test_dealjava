@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Test Dealjava</string>
+    <string name="btn_open_pack_again">Open Pack Again</string>
+    <string name="btn_list_unlock_recipes">List Unlock Recipes</string>
+</resources>
